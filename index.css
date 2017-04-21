@@ -1,8 +1,49 @@
 body {
   margin: 0;
+  background-color: #E4DFDA !important;
 }
 
 #audioVisualizerCanvas {
-  width: 80%;
   background-color: #FFFAE3;
+  padding-left: 30vw;
+  width: 100%;
+}
+
+.audioControls {
+  text-align: center;
+}
+
+#audioBar {
+  width: 100%;
+  margin-top: -3px;
+}
+
+#audioSlider {
+  position: absolute;
+  margin: 0 auto;
+  height: 2px;
+  width: 100%;
+  background: #555;
+  border-radius: 15px;
+}
+
+#audioSlider .ui-slider-range-min {
+  height: 2px;
+  width: 300px;
+  position: absolute;
+  background: #2ecc71;
+  border: none;
+  border-radius: 10px;
+  outline: none;
+}
+
+#audioSlider .ui-slider-handle {
+  width: 10px;
+  height: 10px;
+  border-radius: 10px;
+  background: #5BC0BE;
+  position: absolute;
+  margin-top: -4px;
+  cursor: pointer;
+  outline: none;
 }
