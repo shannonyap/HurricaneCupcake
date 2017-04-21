@@ -2,7 +2,7 @@ var analyzer;
 var canvas;
 var ctx;
 
-var musicPlaylist = ["DayByDay.mp3", "SummerTimeMemory.mp3", "DragonfruitSalad.mp3"];
+var musicPlaylist = ["DayByDay.mp3", "SummerTimeMemory.mp3", "DragonfruitSalad.mp3", "MilleFeuille.mp3", "PandaWonder.mp3"];
 var musicCounter = 0;
 var loopMode = 0;
 
