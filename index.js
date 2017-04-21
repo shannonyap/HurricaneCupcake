@@ -86,7 +86,7 @@ function setupAudioScrubber() {
   		range: "min",
     	slide: function(event, ui) {
         var audio = document.getElementById('audioPlayer');
-        audio.currentTime = ui.value;
+        audio.currentTime = ui.value * audio.duration / 100;
     	}
   });
 }
