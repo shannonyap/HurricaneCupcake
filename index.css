@@ -1,10 +1,66 @@
 body {
   margin: 0;
-  background-color: #E4DFDA !important;
+}
+
+#trackMetaDataDiv {
+  padding: 1% 0;
+  background-color: #449DD1;
+}
+
+#leftMetaDataDiv {
+  width: 50%;
+  float: left;
+  background-color: inherit;
+}
+
+#rightMetaDataDiv {
+  width: 50%;
+  float: right;
+  background-color: inherit;
+}
+
+#totalTimeDiv {
+  margin: 0 1%;
+}
+
+#timeDividerDiv {
+  margin-left: 1%;
+}
+
+.metadataColor {
+  margin: 0 !important;
+  color: #E7ECEF !important;
+}
+
+.outerHeaderContent {
+  height: 160px;
+}
+
+.innerHeaderContentCenter {
+  position: relative;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+.innerHeaderContentBottom {
+  position: relative;
+  float: right;
+  top: 90%;
+  -webkit-transform: translateY(-90%);
+  -ms-transform: translateY(-90%);
+  transform: translateY(-90%);
+}
+
+#albumImage {
+  margin: 0 1%;
+  float: left;
+  border: 2.5px solid #192BC2;
 }
 
 #audioVisualizerCanvas {
-  background-color: #FFFAE3;
+  background-color: #003049;
   padding-left: 30vw;
   width: 100%;
 }
@@ -15,7 +71,7 @@ body {
 
 #audioBar {
   width: 100%;
-  margin-top: -3px;
+  margin-top: -4px;
 }
 
 #audioSlider {

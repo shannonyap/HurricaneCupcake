@@ -8,8 +8,35 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.10/semantic.min.js"></script>
+    <script src="musicmetadata.js"></script>
   </head>
   <body>
+    <div id="trackMetaDataDiv">
+      <div id="leftMetaDataDiv">
+        <div class="ui circular small image" id="albumImage">
+          <img src="">
+        </div>
+        <div class="outerHeaderContent">
+          <div class="innerHeaderContentCenter">
+            <div class="ui huge header metadataColor" id="currentTrackName"></div>
+            <div class="ui medium header metadataColor" id="currentTrackAlbum"></div>
+          </div>
+        </div>
+      </div>
+      <div id="rightMetaDataDiv">
+        <div class="outerHeaderContent">
+          <div class="innerHeaderContentBottom" id="totalTimeDiv">
+            <div class="ui medium header metadataColor" id="totalTimeHeader"></div>
+          </div>
+          <div class="innerHeaderContentBottom" id="timeDividerDiv">
+            <div class="ui medium header metadataColor" id="timeDivider">/</div>
+          </div>
+          <div class="innerHeaderContentBottom">
+            <div class="ui medium header metadataColor" id="timeElapsedHeader"></div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="musicVisualizerDiv"></div>
     <script src="index.js"></script>
   </body>

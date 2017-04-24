@@ -31,16 +31,14 @@ function setupWebAudio() {
       audio.play();
     }
   });
-  setInterval(function(){
-    var progressPercentage = audio.currentTime / audio.duration * 100;
-    var audioHandler = $('#audioSlider').children()[1];
-    var audioProgress = $('#audioSlider').children()[2];
 
-    $(audioHandler).css({left: progressPercentage + "%"});
-    $(audioProgress).css({width: progressPercentage + "%"});
-  }, 10);
+  updateProgressBar(audio);
+
   audio.id = 'audioPlayer'
   audio.src = musicPlaylist[musicCounter];
+
+  getTrackMetadata();
+
   $('#musicVisualizerDiv').append(audio);
   audio.style.width = window.innerWidth * 0.4 + 'px';
 
@@ -49,7 +47,21 @@ function setupWebAudio() {
   var source = audioContext.createMediaElementSource(audio);
   source.connect(analyzer);
   analyzer.connect(audioContext.destination);
-  audio.play()
+  audio.play();
+}
+
+function updateProgressBar(audio) {
+  setInterval(function(){
+    var progressPercentage = audio.currentTime / audio.duration * 100;
+    var audioHandler = $('#audioSlider').children()[1];
+    var audioProgress = $('#audioSlider').children()[2];
+
+    $(audioHandler).css({left: progressPercentage + "%"});
+    $(audioProgress).css({width: progressPercentage + "%"});
+
+    setupAudioTimingControls(audio);
+
+  }, 10);
 }
 
 function draw() {
@@ -59,9 +71,29 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   for (var i = 0; i < freqByteData.length; i += 10) {
-    ctx.fillStyle = '#F7567C';
+    ctx.fillStyle = '#D62828';
     ctx.fillRect(i, canvas.height - freqByteData[i], 10, canvas.height);
     ctx.strokeRect(i, canvas.height - freqByteData[i], 10, canvas.height);
+  }
+}
+
+function setupAudioTimingControls(audio) {
+  $('#totalTimeHeader').html("0:00");
+  var elapsedSeconds = Math.floor(audio.currentTime) % 60;
+  var elapsedMinutes = Math.floor(audio.currentTime/ 60);
+  var totalSeconds = Math.floor(audio.duration) % 60;
+  var totalMinutes = Math.floor(audio.duration / 60);
+  if (!isNaN(elapsedMinutes) && !isNaN(elapsedSeconds)) {
+    if (elapsedSeconds < 10) {
+      elapsedSeconds = "0" + elapsedSeconds;
+    }
+    $('#timeElapsedHeader').html(elapsedMinutes + ":" + elapsedSeconds);
+  }
+  if (!isNaN(totalMinutes) && !isNaN(totalSeconds)) {
+    if (totalSeconds < 10) {
+      totalSeconds = "0" + totalSeconds;
+    }
+    $('#totalTimeHeader').html(totalMinutes + ":" + totalSeconds);
   }
 }
 
@@ -125,6 +157,7 @@ function nextTrackInPlaylist() {
   if (musicCounter > musicPlaylist.length - 1) {
     musicCounter = 0;
   }
+  getTrackMetadata();
   playAudio();
 }
 
@@ -133,6 +166,7 @@ function previousTrackInPlaylist() {
   if (musicCounter < 0) {
     musicCounter = musicPlaylist.length - 1;
   }
+  getTrackMetadata();
   playAudio();
 }
 
@@ -182,4 +216,46 @@ function muteTrackInPlaylist() {
     $(icon).addClass('mute');
     audio.volume = 1;
   }
+}
+
+function showMetaData(data) {
+  musicmetadata(data, function (err, result) {
+    if (err) {
+      throw err;
+    }
+    console.log(result);
+    $('#currentTrackName').html(result.title);
+    if (result.album != "") {
+      console.log("FFFF");
+      $('#currentTrackAlbum').html(result.album);
+    } else {
+      $('#currentTrackAlbum').html("Unknown Album");
+    }
+    if (result.picture.length > 0) {
+      var picture = result.picture[0];
+      var url = URL.createObjectURL(new Blob([picture.data], {'type': 'image/' + picture.format}));
+      var image = document.getElementById('albumImage').children[0];
+      image.src = url;
+    }
+
+    /*
+    if (result.picture.length > 0) {
+      var picture = result.picture[0];
+      var url = URL.createObjectURL(new Blob([picture.data], {'type': 'image/' + picture.format}));
+      var image = document.getElementById('myimg');
+      image.src = url;
+    }
+    var div = document.getElementById('info');
+    div.innerText = JSON.stringify(result, undefined, 2);*/
+  });
+}
+
+function getTrackMetadata() {
+    var xhr = new XMLHttpRequest();
+    xhr.responseType = "arraybuffer";
+    xhr.open("get", musicPlaylist[musicCounter], true);
+    xhr.onload = function(e) {
+      showMetaData(e.target.response);
+    }
+    xhr.send();
 }
