@@ -2,7 +2,7 @@ var analyzer;
 var canvas;
 var ctx;
 
-var musicPlaylist = ["DayByDay.mp3", "SummerTimeMemory.mp3", "DragonfruitSalad.mp3", "MilleFeuille.mp3", "PandaWonder.mp3"];
+var musicPlaylist = ["Perfume!.mp3", "DayByDay.mp3", "SummerTimeMemory.mp3", "DragonfruitSalad.mp3", "MilleFeuille.mp3", "PandaWonder.mp3"];
 var musicCounter = 0;
 var repeatTrackMode = 0;
 
@@ -32,7 +32,10 @@ function setupWebAudio() {
     }
   });
 
-  updateProgressBar(audio);
+  audio.ontimeupdate = function() {
+    updateProgressBar(audio);
+    setupAudioTimingControls(audio);
+  };
 
   audio.id = 'audioPlayer'
   audio.src = musicPlaylist[musicCounter];
@@ -51,17 +54,12 @@ function setupWebAudio() {
 }
 
 function updateProgressBar(audio) {
-  setInterval(function(){
     var progressPercentage = audio.currentTime / audio.duration * 100;
     var audioHandler = $('#audioSlider').children()[1];
     var audioProgress = $('#audioSlider').children()[2];
 
     $(audioHandler).css({left: progressPercentage + "%"});
     $(audioProgress).css({width: progressPercentage + "%"});
-
-    setupAudioTimingControls(audio);
-
-  }, 10);
 }
 
 function draw() {
