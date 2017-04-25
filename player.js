@@ -7,6 +7,8 @@ var musicCounter = 0;
 var repeatTrackMode = 0;
 
 window.onload = function() {
+  initFirebase();
+  displayWelcomeMessage();
   canvas = document.createElement("canvas");
   canvas.id = "audioVisualizerCanvas";
   canvas.width = window.innerWidth;
@@ -17,6 +19,52 @@ window.onload = function() {
   setupAudioControls();
   setupWebAudio();
   draw();
+}
+function initFirebase() {
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyBNHn_lpM2uCnAUIBFqts5opqa_AmQsAUQ",
+    authDomain: "hurricanecupcake.firebaseapp.com",
+    databaseURL: "https://hurricanecupcake.firebaseio.com",
+    projectId: "hurricanecupcake",
+    storageBucket: "hurricanecupcake.appspot.com",
+    messagingSenderId: "325561906534"
+  };
+  firebase.initializeApp(config);
+}
+
+function displayWelcomeMessage() {
+  var smallModal = $('<div>', {class: 'ui modal'});
+  var header = $('<div>', {class: 'header'});
+  $(header).css({"text-align": "center"});
+  var actions = $('<div>', {class: 'actions'});
+  var startListeningButton = $('<div>', {class: 'ui green button', onclick: 'dismissModal(this)'}).html("Start Listening!");
+
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+      // User is signed in.
+      var currentUserUid = firebase.auth().currentUser.uid;
+      return firebase.database().ref('/users/' + currentUserUid).once('value').then(function(snapshot) {
+        var firstName = snapshot.val().firstName;
+        var lastName = snapshot.val().lastName;
+        $(header).html("Welcome " + firstName + " " + lastName + "!");
+      });
+    }
+  });
+
+  actions.append(startListeningButton);
+  smallModal.append(header);
+  smallModal.append(actions);
+
+  $('body').append(smallModal);
+
+  $(smallModal).modal('show');
+}
+
+function dismissModal(button) {
+  var smallModal = $(button).parent().parent();
+  $(smallModal).modal('hide');
+  toggleAudio();
 }
 
 function setupWebAudio() {
@@ -50,7 +98,6 @@ function setupWebAudio() {
   var source = audioContext.createMediaElementSource(audio);
   source.connect(analyzer);
   analyzer.connect(audioContext.destination);
-  audio.play();
 }
 
 function updateProgressBar(audio) {
@@ -131,7 +178,7 @@ function setupAudioControls() {
   var previousTrackButton = createAudioButton('previousTrackButton', 'backward', 'previousTrackInPlaylist()');
   audioControls.append(previousTrackButton);
 
-  var playTrackButton = createAudioButton('playTrackButton', 'pause', 'toggleAudio()');
+  var playTrackButton = createAudioButton('playTrackButton', 'play', 'toggleAudio()');
   audioControls.append(playTrackButton);
 
   var nextTrackButton = createAudioButton('nextTrackButton', 'forward', 'nextTrackInPlaylist()');
