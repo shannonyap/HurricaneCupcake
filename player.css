@@ -103,3 +103,12 @@ body {
   cursor: pointer;
   outline: none;
 }
+
+#dropZone {
+  margin: 0 auto;
+  width: 75%;
+  padding: 5%;
+  border: 2px dashed #bbb;
+  border-radius: 2%;
+  text-align: center;
+}

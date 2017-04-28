@@ -2,12 +2,13 @@ var analyzer;
 var canvas;
 var ctx;
 
-var musicPlaylist = ["Perfume!.mp3", "DayByDay.mp3", "SummerTimeMemory.mp3", "DragonfruitSalad.mp3", "MilleFeuille.mp3", "PandaWonder.mp3"];
+var musicPlaylist = [];
 var musicCounter = 0;
 var repeatTrackMode = 0;
 
 window.onload = function() {
   initFirebase();
+  populatePlaylist();
   displayWelcomeMessage();
   canvas = document.createElement("canvas");
   canvas.id = "audioVisualizerCanvas";
@@ -19,7 +20,50 @@ window.onload = function() {
   setupAudioControls();
   setupWebAudio();
   draw();
+  createDragDropZone();
 }
+
+function populatePlaylist() {
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+      // User is signed in.
+      var currentUserUid = firebase.auth().currentUser.uid;
+      return firebase.database().ref('/users/' + currentUserUid + '/playlist').once('value').then(function(snapshot) {
+        var musicPlaylistResult = snapshot.val();
+        for (var key in musicPlaylistResult) {
+          if (musicPlaylistResult.hasOwnProperty(key)) {
+            var trackData = {
+              title: musicPlaylistResult[key]["title"],
+              album: musicPlaylistResult[key]["album"]
+            }
+            musicPlaylist.push(trackData);
+          }
+        }
+        // Create a reference with an initial file path and name
+        var storage = firebase.storage();
+        storage.ref('users/' + currentUserUid + '/music/' + musicPlaylist[musicCounter]["title"]).getDownloadURL().then(function(url) {
+          var audio = document.getElementById('audioPlayer');
+          audio.src = url;
+        }).catch(function(error) {
+          // Handle any errors
+        });
+        storage.ref('users/' + currentUserUid + '/albumArt/' + musicPlaylist[musicCounter]["title"]).getDownloadURL().then(function(url) {
+          var image = document.getElementById('albumImage').children[0];
+          image.src = url;
+          $('#currentTrackName').html(musicPlaylist[musicCounter]["title"]);
+          if (musicPlaylist[musicCounter]["album"] != "") {
+            $('#currentTrackAlbum').html(musicPlaylist[musicCounter]["album"]);
+          } else {
+            $('#currentTrackAlbum').html("Unknown Album");
+          }
+        }).catch(function(error) {
+          // Handle any errors
+        });
+      });
+    }
+  });
+}
+
 function initFirebase() {
   // Initialize Firebase
   var config = {
@@ -85,10 +129,8 @@ function setupWebAudio() {
     setupAudioTimingControls(audio);
   };
 
-  audio.id = 'audioPlayer'
-  audio.src = musicPlaylist[musicCounter];
-
-  getTrackMetadata();
+  audio.id = 'audioPlayer';
+  audio.crossOrigin = "anonymous";
 
   $('#musicVisualizerDiv').append(audio);
   audio.style.width = window.innerWidth * 0.4 + 'px';
@@ -217,7 +259,6 @@ function previousTrackInPlaylist() {
 
 function playAudio() {
   var audio = document.getElementById('audioPlayer');
-  audio.src = musicPlaylist[musicCounter];
   audio.play();
 }
 
@@ -263,44 +304,102 @@ function muteTrackInPlaylist() {
   }
 }
 
-function showMetaData(data) {
-  musicmetadata(data, function (err, result) {
-    if (err) {
-      throw err;
+function getTrackMetadata() {
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+      // User is signed in.
+      var currentUserUid = firebase.auth().currentUser.uid;
+      // Create a reference with an initial file path and name
+      var storage = firebase.storage();
+      storage.ref('users/' + currentUserUid + '/music/' + musicPlaylist[musicCounter]["title"]).getDownloadURL().then(function(url) {
+        var audio = document.getElementById('audioPlayer');
+        audio.src = url;
+      }).catch(function(error) {
+        // Handle any errors
+      });
+      storage.ref('users/' + currentUserUid + '/albumArt/' + musicPlaylist[musicCounter]["title"]).getDownloadURL().then(function(url) {
+        var image = document.getElementById('albumImage').children[0];
+        image.src = url;
+        $('#currentTrackName').html(musicPlaylist[musicCounter]["title"]);
+        if (musicPlaylist[musicCounter]["album"] != "") {
+          $('#currentTrackAlbum').html(musicPlaylist[musicCounter]["album"]);
+        } else {
+          $('#currentTrackAlbum').html("Unknown Album");
+        }
+      }).catch(function(error) {
+        // Handle any errors
+      });
     }
-    console.log(result);
-    $('#currentTrackName').html(result.title);
-    if (result.album != "") {
-      console.log("FFFF");
-      $('#currentTrackAlbum').html(result.album);
-    } else {
-      $('#currentTrackAlbum').html("Unknown Album");
-    }
-    if (result.picture.length > 0) {
-      var picture = result.picture[0];
-      var url = URL.createObjectURL(new Blob([picture.data], {'type': 'image/' + picture.format}));
-      var image = document.getElementById('albumImage').children[0];
-      image.src = url;
-    }
-
-    /*
-    if (result.picture.length > 0) {
-      var picture = result.picture[0];
-      var url = URL.createObjectURL(new Blob([picture.data], {'type': 'image/' + picture.format}));
-      var image = document.getElementById('myimg');
-      image.src = url;
-    }
-    var div = document.getElementById('info');
-    div.innerText = JSON.stringify(result, undefined, 2);*/
   });
 }
 
-function getTrackMetadata() {
-    var xhr = new XMLHttpRequest();
-    xhr.responseType = "arraybuffer";
-    xhr.open("get", musicPlaylist[musicCounter], true);
-    xhr.onload = function(e) {
-      showMetaData(e.target.response);
-    }
-    xhr.send();
+// DROPZONE CODE START
+function createDragDropZone() {
+  var dragDropZone = $('<div>', {id: "dropZone"});
+  var dropZoneText = $('<div>', {class: 'ui medium header'}).html("Drop your files here!");
+  dragDropZone.append(dropZoneText);
+  $('body').append(dragDropZone);
+  initializeDragDropListeners();
 }
+
+function handleFileSelect(evt) {
+  evt.stopPropagation();
+  evt.preventDefault();
+
+  var files = evt.dataTransfer.files; // FileList object.
+
+  // files is a FileList of File objects. List some properties.
+  var output = [];
+  for (var i = 0, f; f = files[i]; i++) {
+    // get a copy of the same file to be read.
+    var fileCopy = f;
+
+    musicmetadata(f, function (err, result) {
+      if (err) {
+        throw err;
+      }
+
+      firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+          var picture = result.picture[0];
+          var pictureMetaData = {
+            contentType: 'image/' + picture.format
+          };
+          var databaseMetaData = {
+            title: result.title,
+            album: result.album
+          };
+          var metadata = {
+            contentType: fileCopy.type,
+            size: fileCopy.size,
+            name: fileCopy.name
+          };
+
+          firebase.database().ref('users/' + user.uid + '/playlist/' + result.title).set(databaseMetaData);
+          // Create a root reference
+          var storageRef = firebase.storage().ref();
+          storageRef.child('users/' + user.uid + '/music/' + result.title).put(fileCopy, metadata).then(function(snapshot) {
+            console.log('Uploaded a blob or file!');
+          });
+          storageRef.child('users/' + user.uid + '/albumArt/' + result.title).put(picture.data, pictureMetaData).then(function(snapshot) {
+            console.log('Uploaded art!');
+          });
+        }
+      });
+    });
+  }
+}
+
+function handleDragOver(evt) {
+  evt.stopPropagation();
+  evt.preventDefault();
+  evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+}
+
+function initializeDragDropListeners() {
+  // Setup the dnd listeners.
+  var dropZone = document.getElementById('dropZone');
+  dropZone.addEventListener('dragover', handleDragOver, false);
+  dropZone.addEventListener('drop', handleFileSelect, false);
+}
+// DROPZONE CODE END
